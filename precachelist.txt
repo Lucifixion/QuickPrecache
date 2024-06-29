@@ -1,0 +1,3 @@
+weapons/c_models/c_grenadelauncher/c_grenadelauncher.mdl
+weapons/c_models/c_grenadelauncher/c_grenadelauncher_festivizer.mdl
+weapons/c_models/c_grenadelauncher/c_grenadelauncher_xmas
