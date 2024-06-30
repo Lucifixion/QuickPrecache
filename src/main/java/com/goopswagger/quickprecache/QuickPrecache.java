@@ -53,7 +53,6 @@ public class QuickPrecache {
         BufferedWriter writer = new BufferedWriter(new FileWriter(modelFile));
         writer.write("$modelname \"precache.mdl\"\n");
         for (String s : modelList) {
-            s = s.replace("\"", ""); // HACK!! yippee!
             writer.write("$includemodel " + "\"" + s + "\"\n");
         }
         writer.close();
@@ -66,6 +65,7 @@ public class QuickPrecache {
     // correct any string issues
     public static String handleString(String input) {
         input = input.trim();
+        input = input.replaceAll("\"", "");
         if (input.startsWith("models/"))
             input = input.substring("models/".length());
         if (input.contains("//"))
