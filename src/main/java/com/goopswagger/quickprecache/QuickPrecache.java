@@ -49,10 +49,11 @@ public class QuickPrecache {
         myReader.close();
 
         File modelFile = new File("precache.qc");
-        modelFile.deleteOnExit();
+        //modelFile.deleteOnExit(); // disabled for debugging !
         BufferedWriter writer = new BufferedWriter(new FileWriter(modelFile));
         writer.write("$modelname \"precache.mdl\"\n");
         for (String s : modelList) {
+            s = s.replace("\"", ""); // HACK!! yippee!
             writer.write("$includemodel " + "\"" + s + "\"\n");
         }
         writer.close();
