@@ -1,4 +1,5 @@
 plugins {
+  id 'com.github.johnrengelman.shadow' version '8.1.1'
   id 'java'
   id 'application'
 }
@@ -8,6 +9,10 @@ version ''
 
 repositories {
   mavenCentral()
+}
+
+dependencies {
+  implementation("com.google.guava:guava:24.0-jre")
 }
 
 sourceCompatibility = '17'

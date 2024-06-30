@@ -1,15 +1,21 @@
 package com.goopswagger.quickprecache;
 
+import com.google.common.collect.Iterables;
+
 import java.io.*;
 import java.net.URISyntaxException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Scanner;
 
 // this code kinda stinks... beware!!
 public class QuickPrecache {
+    public static final int SPLIT_SIZE = 32;
+
     public static final HashSet<String> modelList = new HashSet<>();
 
     public static void main(String[] args) throws IOException, URISyntaxException {
+        String path = new File(QuickPrecache.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getParent();
         File scriptFile = new File("precachelist.txt");
         if (!scriptFile.exists()) {
             if (scriptFile.createNewFile()) {
@@ -48,18 +54,32 @@ public class QuickPrecache {
         }
         myReader.close();
 
+        int splitIndex = 0;
+        for (List<String> split : Iterables.partition(modelList, SPLIT_SIZE)) {
+            String splitFileName = "precache_" + splitIndex;
+            File splitFile = new File(splitFileName + ".qc");
+            splitFile.createNewFile();
+            splitFile.deleteOnExit();
+            BufferedWriter splitWriter = new BufferedWriter(new FileWriter(splitFile));
+            splitWriter.write("$modelname \"" + splitFileName + ".mdl\"\n");
+            for (String s : split) {
+                splitWriter.write("$includemodel " + "\"" + s + "\"\n");
+            }
+            splitWriter.close();
+            makeModel(path, "precache_" + splitIndex);
+            splitIndex++;
+        }
+
         File modelFile = new File("precache.qc");
-        //modelFile.deleteOnExit(); // disabled for debugging !
+        modelFile.deleteOnExit();
         BufferedWriter writer = new BufferedWriter(new FileWriter(modelFile));
         writer.write("$modelname \"precache.mdl\"\n");
-        for (String s : modelList) {
-            writer.write("$includemodel " + "\"" + s + "\"\n");
+        for (int i = 0; i < splitIndex; i++) {
+            writer.write("$includemodel " + "\"" + "precache_" + i + "\"\n");
         }
         writer.close();
 
-        String path = new File(QuickPrecache.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getParent();
-
-        makeModel(path);
+        makeModel(path, "precache");
     }
 
     // correct any string issues
@@ -75,12 +95,12 @@ public class QuickPrecache {
         return input;
     }
 
-    public static void makeModel(String path) throws IOException {
+    public static void makeModel(String path, String file) throws IOException {
         String process = path + "/bin/studiomdl.exe\"";
         String pGame = "-game " +  "\"" + path + "/tf/\"";
         String pNop4 = "-nop4";
         String pVerbose = "-verbose";
-        String pFile = "precache.qc";
+        String pFile = file + ".qc";
         ProcessBuilder builder = new ProcessBuilder(process + " " + path + " " + pGame + " " + pNop4 + " " + pVerbose + " " + pFile);
         builder.redirectErrorStream(true);
         Process p = builder.start();
