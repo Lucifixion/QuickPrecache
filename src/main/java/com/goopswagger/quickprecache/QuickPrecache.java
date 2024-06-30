@@ -36,10 +36,15 @@ public class QuickPrecache {
         while (myReader.hasNextLine()) {
             String baseModel = myReader.nextLine();
             String model = handleString(baseModel);
-            if (!model.trim().startsWith("//") && !baseModel.isEmpty()) {
-                System.out.println("\t" + model);
-                modelList.add(model);
-            }
+
+            if (baseModel.isEmpty())
+                continue;
+
+            if (baseModel.trim().startsWith("//"))
+                continue;
+
+            System.out.println("\t" + model);
+            modelList.add(model);
         }
         myReader.close();
 
@@ -59,8 +64,11 @@ public class QuickPrecache {
 
     // correct any string issues
     public static String handleString(String input) {
+        input = input.trim();
         if (input.startsWith("models/"))
             input = input.substring("models/".length());
+        if (input.contains("//"))
+            input = input.substring(0, input.indexOf("//")).trim();
         if (!input.endsWith(".mdl"))
             input += ".mdl";
         return input;

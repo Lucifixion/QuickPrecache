@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'com.goopswagger.quickprecache'
-version '1.0-SNAPSHOT'
+version ''
 
 repositories {
   mavenCentral()
