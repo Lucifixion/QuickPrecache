@@ -10,13 +10,21 @@ import java.util.Scanner;
 
 // this code kinda stinks... beware!!
 public class QuickPrecache {
-    public static final int SPLIT_SIZE = 32;
+    public static int SPLIT_SIZE = 48;
 
     public static final HashSet<String> modelList = new HashSet<>();
 
     public static void main(String[] args) throws IOException, URISyntaxException {
+        String script = "precachelist.txt";
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals("-list"))
+                script = args[i+1];
+            if (args[i].equals("-chunksize"))
+                SPLIT_SIZE = Integer.parseInt(args[i+1]);
+        }
+
         String path = new File(QuickPrecache.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getParent();
-        File scriptFile = new File("precachelist.txt");
+        File scriptFile = new File(script);
         if (!scriptFile.exists()) {
             if (scriptFile.createNewFile()) {
                 BufferedWriter writer = new BufferedWriter(new FileWriter(scriptFile));
@@ -49,8 +57,8 @@ public class QuickPrecache {
             if (baseModel.trim().startsWith("//"))
                 continue;
 
-            System.out.println("\t" + model);
-            modelList.add(model);
+            if (modelList.add(model))
+                System.out.println("\t" + model);
         }
         myReader.close();
 
@@ -75,7 +83,7 @@ public class QuickPrecache {
         BufferedWriter writer = new BufferedWriter(new FileWriter(modelFile));
         writer.write("$modelname \"precache.mdl\"\n");
         for (int i = 0; i < splitIndex; i++) {
-            writer.write("$includemodel " + "\"" + "precache_" + i + "\"\n");
+            writer.write("$includemodel " + "\"" + "precache_" + i + ".mdl\"\n");
         }
         writer.close();
 
