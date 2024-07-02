@@ -49,8 +49,8 @@ public class Archive
 			this.treeLength = this.readUnsignedInt(fileInputStream);
 			
 			//check signature and version
-			if (this.signature != Archive.SIGNATURE)
-				throw new ArchiveException("Invalid signature");
+//			if (this.signature != Archive.SIGNATURE)
+//				throw new ArchiveException("Invalid signature");
 			if (this.version < Archive.MINIMUM_VERSION || this.version > Archive.MAXIMUM_VERSION)
 				throw new ArchiveException("Unsupported version");
 			

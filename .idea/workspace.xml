@@ -5,16 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c51eff90-43c4-47c1-9571-4cf834dc35f5" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/connorhaigh/javavpk/JavaVPK.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/connorhaigh/javavpk/core/Archive.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/connorhaigh/javavpk/core/Directory.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/connorhaigh/javavpk/core/Entry.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/connorhaigh/javavpk/exceptions/ArchiveException.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/connorhaigh/javavpk/exceptions/EntryException.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/goopswagger/quickprecache/PrecacheListUtil.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/goopswagger/quickprecache/QuickPrecache.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/goopswagger/quickprecache/QuickPrecache.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -72,6 +63,7 @@
     "Gradle.QuickPrecache [dependencies].executor": "Run",
     "Gradle.QuickPrecache [processResources].executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "D:/Projects/QuickPrecache/src/main/java/com"
   }
