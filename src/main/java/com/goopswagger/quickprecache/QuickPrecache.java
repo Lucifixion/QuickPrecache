@@ -12,55 +12,57 @@ import java.util.Scanner;
 public class QuickPrecache {
     public static int SPLIT_SIZE = 48;
 
-    public static final HashSet<String> modelList = new HashSet<>();
+    public static HashSet<String> modelList = new HashSet<>();
 
     public static void main(String[] args) throws IOException, URISyntaxException {
-        String script = "precachelist.txt";
+        boolean auto = false;
+        String scriptName = "";
+        String path = new File(QuickPrecache.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getParent();
         for (int i = 0; i < args.length; i++) {
+            if (args[i].equals("-auto"))
+                auto = true;
             if (args[i].equals("-list"))
-                script = args[i+1];
+                scriptName = args[i+1];
             if (args[i].equals("-chunksize"))
                 SPLIT_SIZE = Integer.parseInt(args[i+1]);
         }
 
-        String path = new File(QuickPrecache.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getParent();
-        File scriptFile = new File(script);
-        if (!scriptFile.exists()) {
-            if (scriptFile.createNewFile()) {
-                BufferedWriter writer = new BufferedWriter(new FileWriter(scriptFile));
-                writer.write("///////////////////////////////////////////////////////////////////////////////////////////\n");
-                writer.write("// models are included in a full path from the 'models' folder.\n");
-                writer.write("// it is REQUIRED to run 'quickprecache.bat' after editing this script.\n");
-                writer.write("// if you recieve the error \"Unsupported major.minor version\", you need a newer version of java\n");
-                writer.write("// ( there is an open invitation for anyone to write a non-java app ( or just jpackage it, im too lazy for that ) )\n");
-                writer.write("///////////////////////////////////////////////////////////////////////////////////////////\n");
-                writer.write("// EXAMPLES BELOW VVVVV\n");
-                writer.write("// weapons/c_models/c_grenadelauncher/c_grenadelauncher.mdl\n");
-                writer.write("// weapons/c_models/c_scout_animations.mdl\n");
-                writer.write("// player/scout.mdl\n");
-                writer.write("///////////////////////////////////////////////////////////////////////////////////////////\n");
-                writer.close();
-            } else {
-                System.out.println("FAILED TO CREATE FILE. SOMETHING IS WRONG.");
+        if (auto) {
+            modelList = PrecacheListUtil.makePrecacheList();
+            if (!scriptName.isEmpty()) {
+                File file = new File(scriptName);
+                file.createNewFile();
+                BufferedWriter fileWriter = new BufferedWriter(new FileWriter(file));
+                for (String s : modelList) {
+                    fileWriter.write(s + "\n");
+                }
+                fileWriter.close();
             }
-            return;
         }
-        Scanner myReader = new Scanner(scriptFile);
+        else {
+            modelList = new HashSet<>();
+            if (scriptName.isEmpty())
+                scriptName = "precachelist.txt";
+            Scanner scriptReader = new Scanner(new File(scriptName));
+            while (scriptReader.hasNextLine()) {
+                String baseModel = scriptReader.nextLine();
+                String model = handleString(baseModel);
+
+                if (baseModel.isEmpty())
+                    continue;
+
+                if (baseModel.trim().startsWith("//"))
+                    continue;
+
+                if (modelList.add(model))
+                    System.out.println(model);
+            }
+            scriptReader.close();
+        }
+
         System.out.println("Precached models:");
-        while (myReader.hasNextLine()) {
-            String baseModel = myReader.nextLine();
-            String model = handleString(baseModel);
-
-            if (baseModel.isEmpty())
-                continue;
-
-            if (baseModel.trim().startsWith("//"))
-                continue;
-
-            if (modelList.add(model))
-                System.out.println("\t" + model);
-        }
-        myReader.close();
+        for (String s : modelList)
+            System.out.println(s);
 
         int splitIndex = 0;
         for (List<String> split : Iterables.partition(modelList, SPLIT_SIZE)) {
