@@ -56,16 +56,19 @@ public class PrecacheListUtil {
     public static List<String> manageVPK(File file) {
         List<String> list = new ArrayList<>();
         Archive archive = new Archive(file);
-        archive.load();
 
-        for (Directory directory : archive.getDirectories()) {
-            for (Entry entry : directory.getEntries()) {
-                String entryPath = directory.getPath();
-                String entryName = entry.getFullName();
-                if (entryPath.startsWith("models/") && entryName.endsWith(".mdl")) {
-                    list.add(entryPath.substring("models/".length()) + "/" + entryName);
+        if (archive.load()) {
+            for (Directory directory : archive.getDirectories()) {
+                for (Entry entry : directory.getEntries()) {
+                    String entryPath = directory.getPath();
+                    String entryName = entry.getFullName();
+                    if (entryPath.startsWith("models/") && entryName.endsWith(".mdl")) {
+                        list.add(entryPath.substring("models/".length()) + "/" + entryName);
+                    }
                 }
             }
+        } else {
+            System.out.println( "WARNING! Failed to load invalid vpk: " + file.getAbsolutePath() );
         }
 
         return list;

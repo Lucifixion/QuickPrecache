@@ -36,7 +36,7 @@ public class Archive
 	 * @throws ArchiveException if a general archive exception occurs
 	 * @throws EntryException if a general entry exception occurs
 	 */
-	public void load() throws IOException, ArchiveException, EntryException
+	public boolean load() throws IOException, ArchiveException, EntryException
 	{
 		try (FileInputStream fileInputStream = new FileInputStream(this.file))
 		{
@@ -49,10 +49,14 @@ public class Archive
 			this.treeLength = this.readUnsignedInt(fileInputStream);
 			
 			//check signature and version
-//			if (this.signature != Archive.SIGNATURE)
-//				throw new ArchiveException("Invalid signature");
-			if (this.version < Archive.MINIMUM_VERSION || this.version > Archive.MAXIMUM_VERSION)
-				throw new ArchiveException("Unsupported version");
+			if (this.signature != Archive.SIGNATURE) {
+				System.out.println("Failed to read invalid signature");
+				return false;
+			}
+			if (this.version < Archive.MINIMUM_VERSION || this.version > Archive.MAXIMUM_VERSION) {
+				System.out.println("Failed to load unsupported version");
+				return false;
+			}
 			
 			//version handling
 			switch (this.version)
@@ -124,6 +128,7 @@ public class Archive
 				}
 			}
 		}
+		return true;
 	}
 	
 	/**
