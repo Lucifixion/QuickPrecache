@@ -29,7 +29,7 @@ public class PrecacheListUtil {
                     list.addAll(manageVPK(file));
             }
             for (String s : list) {
-                if (!s.contains("decompiled ") && !s.contains("competitive_badge.mdl"))
+                if (!s.contains("decompiled ") && !s.contains("competitive_badge.mdl") && !s.contains("c_models/animations/"))
                     modelList.add(s);
             }
         }
@@ -68,7 +68,7 @@ public class PrecacheListUtil {
                 }
             }
         } else {
-            System.out.println( "WARNING! Failed to load invalid vpk: " + file.getAbsolutePath() );
+            QuickPrecache.failedVpks.add(file.getAbsolutePath());
         }
 
         return list;

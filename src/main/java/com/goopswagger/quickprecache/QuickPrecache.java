@@ -4,6 +4,7 @@ import com.google.common.collect.Iterables;
 
 import java.io.*;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
@@ -12,6 +13,7 @@ import java.util.Scanner;
 public class QuickPrecache {
     public static int SPLIT_SIZE = 48;
 
+    public static ArrayList<String> failedVpks = new ArrayList<>();
     public static HashSet<String> modelList = new HashSet<>();
 
     public static void main(String[] args) throws IOException, URISyntaxException {
@@ -90,6 +92,13 @@ public class QuickPrecache {
         writer.close();
 
         makeModel(path, "precache");
+
+        if (!failedVpks.isEmpty()) {
+            System.out.println("WARNING!!! Failed to load invalid vpk(s): ");
+            for (String failedVpk : failedVpks) {
+                System.out.println("\t" + failedVpk);
+            }
+        }
     }
 
     // correct any string issues
