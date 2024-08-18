@@ -11,18 +11,22 @@ import java.util.Scanner;
 
 // this code kinda stinks... beware!!
 public class QuickPrecache {
-    public static int SPLIT_SIZE = 48;
+    public static int SPLIT_SIZE = 24;
 
     public static ArrayList<String> failedVpks = new ArrayList<>();
     public static HashSet<String> modelList = new HashSet<>();
 
+    public static boolean auto = false;
+    public static boolean debug = false;
+
     public static void main(String[] args) throws IOException, URISyntaxException {
-        boolean auto = false;
         String scriptName = "";
         String path = new File(QuickPrecache.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getParent();
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-auto"))
                 auto = true;
+            if (args[i].equals("-debug"))
+                debug = true;
             if (args[i].equals("-list"))
                 scriptName = args[i+1];
             if (args[i].equals("-chunksize"))
@@ -71,7 +75,8 @@ public class QuickPrecache {
             String splitFileName = "precache_" + splitIndex;
             File splitFile = new File(splitFileName + ".qc");
             splitFile.createNewFile();
-            splitFile.deleteOnExit();
+            if (!debug)
+                splitFile.deleteOnExit();
             BufferedWriter splitWriter = new BufferedWriter(new FileWriter(splitFile));
             splitWriter.write("$modelname \"" + splitFileName + ".mdl\"\n");
             for (String s : split) {
@@ -83,7 +88,8 @@ public class QuickPrecache {
         }
 
         File modelFile = new File("precache.qc");
-        modelFile.deleteOnExit();
+        if (!debug)
+            modelFile.deleteOnExit();
         BufferedWriter writer = new BufferedWriter(new FileWriter(modelFile));
         writer.write("$modelname \"precache.mdl\"\n");
         for (int i = 0; i < splitIndex; i++) {

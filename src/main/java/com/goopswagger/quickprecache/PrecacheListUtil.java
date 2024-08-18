@@ -15,6 +15,15 @@ import java.util.stream.Stream;
 
 public class PrecacheListUtil {
 
+    public static final String[] FILE_SUFFIXES = {
+            ".dx80.vtx",
+            ".dx90.vtx",
+            ".mdl",
+            ".phy",
+            ".sw.vtx",
+            ".vvd"
+    };
+
     @SneakyThrows
     public static HashSet<String> makePrecacheList() {
         HashSet<String> modelList = new HashSet<>();
@@ -44,8 +53,12 @@ public class PrecacheListUtil {
             stream.filter(Files::isRegularFile)
                     .forEach(str -> {
                         String entry = str.toString().substring(file.getAbsolutePath().length() + 1);
-                        if (entry.endsWith(".mdl"))
-                            list.add(entry.replace("\\", "/"));
+                        for (String fileSuffix : FILE_SUFFIXES) {
+                            if (entry.endsWith(fileSuffix)) {
+                                list.add((entry.replace("\\", "/").substring(0, entry.length()-fileSuffix.length()) + ".mdl").toLowerCase());
+                                break;
+                            }
+                        }
                     });
         }
 
@@ -62,8 +75,13 @@ public class PrecacheListUtil {
                 for (Entry entry : directory.getEntries()) {
                     String entryPath = directory.getPath();
                     String entryName = entry.getFullName();
-                    if (entryPath.startsWith("models/") && entryName.endsWith(".mdl")) {
-                        list.add(entryPath.substring("models/".length()) + "/" + entryName);
+                    if (entryPath.startsWith("models/")) {
+                        for (String fileSuffix : FILE_SUFFIXES) {
+                            if (entryName.endsWith(fileSuffix)) {
+                                list.add((entryPath.substring("models/".length()) + "/" + entryName.substring(0, entryName.length()-fileSuffix.length()) + ".mdl").toLowerCase());
+                                break;
+                            }
+                        }
                     }
                 }
             }
