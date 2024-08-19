@@ -5,8 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c51eff90-43c4-47c1-9571-4cf834dc35f5" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/goopswagger/quickprecache/ConfigUtil.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/goopswagger/quickprecache/PrecacheListUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/goopswagger/quickprecache/PrecacheListUtil.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/goopswagger/quickprecache/QuickPrecache.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/goopswagger/quickprecache/QuickPrecache.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -43,6 +43,13 @@
         </projects_view>
       </state>
     </system>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -148,9 +155,9 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.QuickPrecache" />
-        <item itemvalue="Gradle.QuickPrecache [dependencies]" />
         <item itemvalue="Gradle.QuickPrecache [processResources]" />
+        <item itemvalue="Gradle.QuickPrecache [dependencies]" />
+        <item itemvalue="Application.QuickPrecache" />
       </list>
     </recent_temporary>
   </component>

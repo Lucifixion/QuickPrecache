@@ -11,7 +11,8 @@ import java.util.Scanner;
 
 // this code kinda stinks... beware!!
 public class QuickPrecache {
-    public static int SPLIT_SIZE = 24;
+    public static StudioMdlVersion studioMdlVersion = StudioMdlVersion.MISSING;
+    public static int splitSize = 48;
 
     public static ArrayList<String> failedVpks = new ArrayList<>();
     public static HashSet<String> modelList = new HashSet<>();
@@ -22,6 +23,23 @@ public class QuickPrecache {
     public static void main(String[] args) throws IOException, URISyntaxException {
         String scriptName = "";
         String path = new File(QuickPrecache.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getParent();
+
+        if (new File(path + "/bin/nekomdl.exe").exists()) {
+            System.out.println("NekoMDL.exe found.");
+            studioMdlVersion = StudioMdlVersion.NEKOMDL;
+        } else if (new File(path + "/bin/studiomdl.exe").exists()) {
+            System.out.println("StudioMDL.exe found.");
+            studioMdlVersion = StudioMdlVersion.STUDIOMDL;
+        }
+
+        if (studioMdlVersion == StudioMdlVersion.MISSING) {
+            System.out.println("StudioMDL.exe not found, you probably installed the mod wrong.");
+            System.out.println("!!! QuickPrecache does not support linux.");
+            return;
+        }
+
+        ConfigUtil.checkRootLod(path);
+
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-auto"))
                 auto = true;
@@ -30,7 +48,7 @@ public class QuickPrecache {
             if (args[i].equals("-list"))
                 scriptName = args[i+1];
             if (args[i].equals("-chunksize"))
-                SPLIT_SIZE = Integer.parseInt(args[i+1]);
+                splitSize = Integer.parseInt(args[i+1]);
         }
 
         if (auto) {
@@ -71,7 +89,7 @@ public class QuickPrecache {
             System.out.println(s);
 
         int splitIndex = 0;
-        for (List<String> split : Iterables.partition(modelList, SPLIT_SIZE)) {
+        for (List<String> split : Iterables.partition(modelList, splitSize)) {
             String splitFileName = "precache_" + splitIndex;
             File splitFile = new File(splitFileName + ".qc");
             splitFile.createNewFile();
@@ -121,7 +139,8 @@ public class QuickPrecache {
     }
 
     public static void makeModel(String path, String file) throws IOException {
-        String process = path + "/bin/studiomdl.exe\"";
+        new File(path + "/tf/models/" + file + ".mdl").delete();
+        String process = path + (studioMdlVersion == StudioMdlVersion.NEKOMDL ? "/bin/nekomdl.exe\"" : "/bin/studiomdl.exe\"");
         String pGame = "-game " +  "\"" + path + "/tf/\"";
         String pNop4 = "-nop4";
         String pVerbose = "-verbose";
@@ -136,5 +155,11 @@ public class QuickPrecache {
             if (line == null) { break; }
             System.out.println(line);
         }
+    }
+
+    public enum StudioMdlVersion {
+        MISSING,
+        STUDIOMDL,
+        NEKOMDL;
     }
 }
