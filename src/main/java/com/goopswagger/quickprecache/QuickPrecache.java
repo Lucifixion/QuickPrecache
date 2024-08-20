@@ -1,9 +1,11 @@
 package com.goopswagger.quickprecache;
 
 import com.google.common.collect.Iterables;
+import lombok.SneakyThrows;
 
 import java.io.*;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -17,20 +19,26 @@ public class QuickPrecache {
     public static ArrayList<String> failedVpks = new ArrayList<>();
     public static HashSet<String> modelList = new HashSet<>();
 
+    public static boolean flush = false;
     public static boolean auto = false;
     public static boolean debug = false;
 
+    @SneakyThrows
     public static void main(String[] args) throws IOException, URISyntaxException {
         String scriptName = "";
         String path = new File(QuickPrecache.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getParent();
 
-        if (new File(path + "/bin/nekomdl.exe").exists()) {
-            System.out.println("NekoMDL.exe found.");
-            studioMdlVersion = StudioMdlVersion.NEKOMDL;
-        } else if (new File(path + "/bin/studiomdl.exe").exists()) {
-            System.out.println("StudioMDL.exe found.");
-            studioMdlVersion = StudioMdlVersion.STUDIOMDL;
+        for (int i = 0; i < args.length; i++) {
+            switch (args[i]) {
+                case "-auto" -> auto = true;
+                case "-flush" -> flush = true;
+                case "-debug" -> debug = true;
+                case "-list" -> scriptName = args[i+1];
+                case "-chunksize" -> splitSize = Integer.parseInt(args[i+1]);
+            }
         }
+
+        studioMdlVersion = getStudioMdlVersion(path);
 
         if (studioMdlVersion == StudioMdlVersion.MISSING) {
             System.out.println("StudioMDL.exe not found, you probably installed the mod wrong.");
@@ -38,18 +46,11 @@ public class QuickPrecache {
             return;
         }
 
-        ConfigUtil.checkRootLod(path);
+        flushFiles(path);
+        if (flush)
+            return;
 
-        for (int i = 0; i < args.length; i++) {
-            if (args[i].equals("-auto"))
-                auto = true;
-            if (args[i].equals("-debug"))
-                debug = true;
-            if (args[i].equals("-list"))
-                scriptName = args[i+1];
-            if (args[i].equals("-chunksize"))
-                splitSize = Integer.parseInt(args[i+1]);
-        }
+        ConfigUtil.checkRootLod(path);
 
         if (auto) {
             modelList = PrecacheListUtil.makePrecacheList();
@@ -88,6 +89,8 @@ public class QuickPrecache {
         for (String s : modelList)
             System.out.println(s);
 
+        Thread.sleep(500); // ???????
+
         int splitIndex = 0;
         for (List<String> split : Iterables.partition(modelList, splitSize)) {
             String splitFileName = "precache_" + splitIndex;
@@ -101,7 +104,6 @@ public class QuickPrecache {
                 splitWriter.write("$includemodel " + "\"" + s + "\"\n");
             }
             splitWriter.close();
-            makeModel(path, "precache_" + splitIndex);
             splitIndex++;
         }
 
@@ -115,12 +117,29 @@ public class QuickPrecache {
         }
         writer.close();
 
+        Thread.sleep(500); // ???????
+
         makeModel(path, "precache");
+
+        for (int i = 0; i < splitIndex; i++) {
+            makeModel(path, "precache_" + i);
+        }
 
         if (!failedVpks.isEmpty()) {
             System.out.println("WARNING!!! Failed to load invalid vpk(s): ");
             for (String failedVpk : failedVpks) {
                 System.out.println("\t" + failedVpk);
+            }
+        }
+    }
+
+    @SneakyThrows
+    public static void flushFiles(String path) {
+        File modelsFolder = Path.of(path + "/tf/models").toFile();
+        if (modelsFolder.exists()) {
+            for (File file : modelsFolder.listFiles()) {
+                if (file.getName().equals("precache.mdl") || (file.getName().startsWith("precache_") && file.getName().endsWith(".mdl")))
+                    file.delete();
             }
         }
     }
@@ -139,8 +158,7 @@ public class QuickPrecache {
     }
 
     public static void makeModel(String path, String file) throws IOException {
-        new File(path + "/tf/models/" + file + ".mdl").delete();
-        String process = path + (studioMdlVersion == StudioMdlVersion.NEKOMDL ? "/bin/nekomdl.exe\"" : "/bin/studiomdl.exe\"");
+        String process = path + "/" + studioMdlVersion.path + "\"";
         String pGame = "-game " +  "\"" + path + "/tf/\"";
         String pNop4 = "-nop4";
         String pVerbose = "-verbose";
@@ -157,9 +175,35 @@ public class QuickPrecache {
         }
     }
 
+    public static StudioMdlVersion getStudioMdlVersion(String path) {
+        if (checkStudioMdlVersion(path, StudioMdlVersion.NEKOMDL))
+            return StudioMdlVersion.NEKOMDL;
+//        if (checkStudioMdlVersion(path, StudioMdlVersion.STUDIOMDL64))
+//            return StudioMdlVersion.STUDIOMDL64;
+        if (checkStudioMdlVersion(path, StudioMdlVersion.STUDIOMDL32))
+            return StudioMdlVersion.STUDIOMDL32;
+        return StudioMdlVersion.MISSING;
+    }
+
+    public static boolean checkStudioMdlVersion(String path, StudioMdlVersion studioMdlVersion) {
+        File studioMdlFile = new File(path + "/" + studioMdlVersion.path);
+        if (studioMdlFile.exists()) {
+            System.out.println(studioMdlVersion.path + " found.");
+            return true;
+        }
+        return false;
+    }
+
     public enum StudioMdlVersion {
-        MISSING,
-        STUDIOMDL,
-        NEKOMDL;
+        MISSING(""),
+//        STUDIOMDL64("bin/x64/studiomdl.exe"), // studiomdl x64 doesn't work
+        STUDIOMDL32("bin/studiomdl.exe"),
+        NEKOMDL("bin/nekomdl.exe");
+
+        public final String path;
+
+        StudioMdlVersion(String path) {
+            this.path = path;
+        }
     }
 }
