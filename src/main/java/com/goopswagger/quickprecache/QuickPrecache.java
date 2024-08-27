@@ -6,14 +6,10 @@ import lombok.SneakyThrows;
 import java.io.*;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 // this code kinda stinks... beware!!
 public class QuickPrecache {
-    public static StudioMdlVersion studioMdlVersion = StudioMdlVersion.MISSING;
     public static int splitSize = 48;
 
     public static ArrayList<String> failedVpks = new ArrayList<>();
@@ -22,6 +18,8 @@ public class QuickPrecache {
     public static boolean flush = false;
     public static boolean auto = false;
     public static boolean debug = false;
+
+    public static int MAX_SPLIT_SIZE = 2048;
 
     @SneakyThrows
     public static void main(String[] args) throws IOException, URISyntaxException {
@@ -34,17 +32,11 @@ public class QuickPrecache {
                 case "-flush" -> flush = true;
                 case "-debug" -> debug = true;
                 case "-list" -> scriptName = args[i+1];
-                case "-chunksize" -> splitSize = Integer.parseInt(args[i+1]);
+                case "-chunksize" -> System.out.println("!!! Chunksize parameter is deprecated !!!");
             }
         }
 
-        studioMdlVersion = getStudioMdlVersion(path);
-
-        if (studioMdlVersion == StudioMdlVersion.MISSING) {
-            System.out.println("StudioMDL.exe not found, you probably installed the mod wrong.");
-            System.out.println("!!! QuickPrecache does not support linux.");
-            return;
-        }
+        StudioMDL.init(path);
 
         flushFiles(path);
         if (flush)
@@ -89,48 +81,108 @@ public class QuickPrecache {
         for (String s : modelList)
             System.out.println(s);
 
-        Thread.sleep(500); // ???????
+        makePrecacheSubList(path, modelList);
+        makePrecacheListFile(path);
 
-        int splitIndex = 0;
-        for (List<String> split : Iterables.partition(modelList, splitSize)) {
-            String splitFileName = "precache_" + splitIndex;
-            File splitFile = new File(splitFileName + ".qc");
-            splitFile.createNewFile();
-            if (!debug)
-                splitFile.deleteOnExit();
-            BufferedWriter splitWriter = new BufferedWriter(new FileWriter(splitFile));
-            splitWriter.write("$modelname \"" + splitFileName + ".mdl\"\n");
-            for (String s : split) {
-                splitWriter.write("$includemodel " + "\"" + s + "\"\n");
+//        int splitIndex = 0;
+//        for (List<String> split : Iterables.partition(modelList, splitSize)) {
+//            String splitFileName = "precache_" + splitIndex;
+//            File splitFile = new File(splitFileName + ".qc");
+//            splitFile.createNewFile();
+//            if (!debug)
+//                splitFile.deleteOnExit();
+//            BufferedWriter splitWriter = new BufferedWriter(new FileWriter(splitFile));
+//            splitWriter.write(\n");
+//            for (String s : split) {
+//                splitWriter.write("$includemodel " + "\"" + s + "\"\n");
+//            }
+//            splitWriter.close();
+//            splitIndex++;
+//        }
+
+//        File modelFile = new File("precache.qc");
+//        if (!debug)
+//            modelFile.deleteOnExit();
+//        BufferedWriter writer = new BufferedWriter(new FileWriter(modelFile));
+//        writer.write("$modelname \"precache.mdl\"\n");
+//        for (int i = 0; i < splitIndex; i++) {
+//            writer.write("$includemodel " + "\"" + "precache_" + i + ".mdl\"\n");
+//        }
+//        writer.close();
+//
+//        Thread.sleep(500); // ???????
+//
+//        StudioMDL.makeModel(path, "precache");
+//
+//        for (int i = 0; i < splitIndex; i++) {
+//            StudioMDL.makeModel(path, "precache_" + i);
+//        }
+//
+//        if (!failedVpks.isEmpty()) {
+//            System.out.println("WARNING!!! Failed to load invalid vpk(s): ");
+//            for (String failedVpk : failedVpks) {
+//                System.out.println("\t" + failedVpk);
+//            }
+//        }
+    }
+
+    public static String getModelName(String model) {
+        return "$modelname \"" + model + ".mdl\"\n";
+    }
+
+    public static String getIncludeModel(String include) {
+        return "$includemodel " + "\"" + include + "\"\n";
+    }
+
+    static int builderIndex = 0;
+
+    public static void makePrecacheSubList(String path, Set<String> strings) {
+        StringBuilder builder = getPrecacheStringBuilder(builderIndex);
+        Set<String> passedStrings = new HashSet<>();
+        for (String s : Iterables.cycle(strings)) {
+            if( passedStrings.contains(s) )
+                continue;
+            if( !((builder.length() + getIncludeModel(s).length()) > MAX_SPLIT_SIZE) ) {
+                builder.append(getIncludeModel(s));
+                passedStrings.add(s);
+            } else {
+                makePrecacheSubListFile(path, "precache_" + builderIndex + ".qc", builder.toString());
+                builder = getPrecacheStringBuilder(++builderIndex);
             }
-            splitWriter.close();
-            splitIndex++;
+            if (strings.size() == passedStrings.size())
+                break;
         }
+    }
 
+    @SneakyThrows
+    public static void makePrecacheSubListFile(String path, String filename, String data) {
+        File modelFile = new File(filename);
+        if (!debug)
+            modelFile.deleteOnExit();
+        BufferedWriter writer = new BufferedWriter(new FileWriter(modelFile));
+        writer.write(data);
+        writer.close();
+        StudioMDL.makeModel(path, filename);
+    }
+
+    @SneakyThrows
+    public static void makePrecacheListFile(String path) {
         File modelFile = new File("precache.qc");
         if (!debug)
             modelFile.deleteOnExit();
         BufferedWriter writer = new BufferedWriter(new FileWriter(modelFile));
-        writer.write("$modelname \"precache.mdl\"\n");
-        for (int i = 0; i < splitIndex; i++) {
-            writer.write("$includemodel " + "\"" + "precache_" + i + ".mdl\"\n");
+        writer.write(getModelName("precache"));
+        for (int i = 0; i < builderIndex; i++) {
+            writer.write(getIncludeModel("precache_" + i + ".mdl"));
         }
         writer.close();
+        StudioMDL.makeModel(path, "precache.qc");
+    }
 
-        Thread.sleep(500); // ???????
-
-        makeModel(path, "precache");
-
-        for (int i = 0; i < splitIndex; i++) {
-            makeModel(path, "precache_" + i);
-        }
-
-        if (!failedVpks.isEmpty()) {
-            System.out.println("WARNING!!! Failed to load invalid vpk(s): ");
-            for (String failedVpk : failedVpks) {
-                System.out.println("\t" + failedVpk);
-            }
-        }
+    public static StringBuilder getPrecacheStringBuilder(int index) {
+        StringBuilder newStringBuilder = new StringBuilder();
+        newStringBuilder.append(getModelName("precache_" + index));
+        return newStringBuilder;
     }
 
     @SneakyThrows
@@ -155,55 +207,5 @@ public class QuickPrecache {
         if (!input.endsWith(".mdl"))
             input += ".mdl";
         return input;
-    }
-
-    public static void makeModel(String path, String file) throws IOException {
-        String process = path + "/" + studioMdlVersion.path + "\"";
-        String pGame = "-game " +  "\"" + path + "/tf/\"";
-        String pNop4 = "-nop4";
-        String pVerbose = "-verbose";
-        String pFile = file + ".qc";
-        ProcessBuilder builder = new ProcessBuilder(process + " " + path + " " + pGame + " " + pNop4 + " " + pVerbose + " " + pFile);
-        builder.redirectErrorStream(true);
-        Process p = builder.start();
-        BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
-        String line;
-        while (true) {
-            line = r.readLine();
-            if (line == null) { break; }
-            System.out.println(line);
-        }
-    }
-
-    public static StudioMdlVersion getStudioMdlVersion(String path) {
-        if (checkStudioMdlVersion(path, StudioMdlVersion.NEKOMDL))
-            return StudioMdlVersion.NEKOMDL;
-//        if (checkStudioMdlVersion(path, StudioMdlVersion.STUDIOMDL64))
-//            return StudioMdlVersion.STUDIOMDL64;
-        if (checkStudioMdlVersion(path, StudioMdlVersion.STUDIOMDL32))
-            return StudioMdlVersion.STUDIOMDL32;
-        return StudioMdlVersion.MISSING;
-    }
-
-    public static boolean checkStudioMdlVersion(String path, StudioMdlVersion studioMdlVersion) {
-        File studioMdlFile = new File(path + "/" + studioMdlVersion.path);
-        if (studioMdlFile.exists()) {
-            System.out.println(studioMdlVersion.path + " found.");
-            return true;
-        }
-        return false;
-    }
-
-    public enum StudioMdlVersion {
-        MISSING(""),
-//        STUDIOMDL64("bin/x64/studiomdl.exe"), // studiomdl x64 doesn't work
-        STUDIOMDL32("bin/studiomdl.exe"),
-        NEKOMDL("bin/nekomdl.exe");
-
-        public final String path;
-
-        StudioMdlVersion(String path) {
-            this.path = path;
-        }
     }
 }
