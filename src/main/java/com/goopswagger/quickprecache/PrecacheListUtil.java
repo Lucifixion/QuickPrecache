@@ -38,7 +38,7 @@ public class PrecacheListUtil {
                     list.addAll(manageVPK(file));
             }
             for (String s : list) {
-                if (!s.contains("decompiled ") && !s.contains("competitive_badge.mdl") && !s.contains("c_models/animations/"))
+                if (!s.contains("decompiled ") && !s.contains("competitive_badge.mdl"))
                     modelList.add(s);
             }
         }

@@ -149,8 +149,12 @@ public class QuickPrecache {
                 makePrecacheSubListFile(path, "precache_" + builderIndex + ".qc", builder.toString());
                 builder = getPrecacheStringBuilder(++builderIndex);
             }
-            if (strings.size() == passedStrings.size())
+            if (strings.size() == passedStrings.size()) {
+                makePrecacheSubListFile(path, "precache_" + builderIndex + ".qc", builder.toString());
+                ++builderIndex;
                 break;
+            }
+
         }
     }
 
