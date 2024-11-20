@@ -12,7 +12,7 @@ public class StudioMDL {
 
         if (studioMdlVersion == Version.MISSING) {
             System.out.println("StudioMDL.exe not found, you probably installed the mod wrong.");
-            System.out.println("!!! QuickPrecache does not support linux.");
+            System.out.println("!!! IF YOU ARE ON LINUX, YOU NEED THE BIN/ FOLDER FROM A WINDOWS VERSION OF THE GAME !!!");
             throw new RuntimeException();
         }
     }
@@ -23,9 +23,7 @@ public class StudioMDL {
         String pNop4 = "-nop4";
         String pVerbose = "-verbose";
         String pFile = file;
-        ProcessBuilder builder = new ProcessBuilder(process + " " + path + " " + pGame + " " + pNop4 + " " + pVerbose + " " + pFile);
-        builder.redirectErrorStream(true);
-        Process p = builder.start();
+        Process p = createProcessCrossPlatform(process + " " + path + " " + pGame + " " + pNop4 + " " + pVerbose + " " + pFile).start();
         BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
         String line;
         while (true) {
@@ -64,6 +62,28 @@ public class StudioMDL {
 
         Version(String path) {
             this.path = path;
+        }
+    }
+
+    public static ProcessBuilder createProcessCrossPlatform(String path) throws IOException {
+        ProcessBuilder pb;
+        if (!System.getProperty("os.name").contains("Windows")) { // UNIX - run all exes through WINE
+            String[] pcmd = new String[] {"bash", "-c", "wine" + " \"" + path};
+            pb = new ProcessBuilder(pcmd);
+            pb.redirectErrorStream(true);
+
+            // debug
+            String s = "";
+            for (String st : pcmd) {
+                s = s + " " + st;
+            }
+            System.out.println(s);
+
+            return pb;
+        } else { // WinNT - native
+            pb = new ProcessBuilder(path);
+            pb.redirectErrorStream(true);
+            return pb;
         }
     }
 }
